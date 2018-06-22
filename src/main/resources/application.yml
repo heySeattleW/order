@@ -1,0 +1,16 @@
+server:
+  port: 8093
+spring:
+  application:
+    name: order
+  datasource:
+    url: jdbc:mysql://123.206.181.71:3306/order?charset=utf8
+    username: root
+    password: l1141180
+    driver-class-name: com.mysql.jdbc.Driver
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com.hey.dao: debug
