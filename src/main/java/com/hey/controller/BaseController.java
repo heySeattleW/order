@@ -1,5 +1,6 @@
 package com.hey.controller;
 
+import com.hey.entity.User;
 import com.hey.result.SingleResult;
 import com.hey.service.BaseService;
 import com.hey.util.UploadSomething;
@@ -26,32 +27,24 @@ public class BaseController {
     public static final String IMAGE_DIR = "/public/image/";
     public static final String SERVER_URL = "";
 
-//    @PostMapping(value = "/register",produces="application/json")
-//    @ApiOperation(value = "注册用户进入系统",httpMethod = "POST")
-//    public BaseResult addUser(@ApiParam(name="code",value = "code",required = true)
-//                          @RequestParam(value = "code",required = true)String code,
-//                              @ApiParam(name="nickName",value = "昵称",required = false)
-//                          @RequestParam(value = "nickName",required = false)String nickName,
-//                              @ApiParam(name="head",value = "头像",required = false)
-//                          @RequestParam(value = "head",required = false)String head
-//    ){
-//        return new BaseResult(userService.registerUser(code,head, nickName));
-//    }
-//
-//
-//    @PostMapping(value = "/update",produces="application/json")
-//    @ApiOperation(value = "修改用户信息",httpMethod = "POST")
-//    public BaseResult updateUserInfo(@ApiParam(name="gisId",value = "gisId",required = false)
-//                              @RequestParam(value = "gisId",required = false)Long gisId,
-//                              @ApiParam(name="nickName",value = "昵称",required = false)
-//                              @RequestParam(value = "nickName",required = false)String nickName,
-//                              @ApiParam(name="userId",value = "用户id",required = true)
-//                              @RequestParam(value = "userId",required = true)Long userId,
-//                             @ApiParam(name="openid",value = "openid",required = true)
-//                                 @RequestParam(value = "openid",required = true)String openid
-//    ){
-//        return new BaseResult(userService.updateUserInfo(gisId, nickName, userId));
-//    }
+    @PostMapping(value = "/register",produces="application/json")
+    @ApiOperation(value = "注册用户进入系统",httpMethod = "POST")
+    public SingleResult addUser(@ApiParam(name="user",value = "用户实体类",required = true)
+                          @RequestBody(required = true)User user,
+                              @ApiParam(name="imageUrl",value = "昵称",required = true)
+                          @RequestParam(value = "imageUrl",required = true)String imageUrl
+    ){
+        return baseService.saveUser(user,imageUrl);
+    }
+
+
+    @PostMapping(value = "/update",produces="application/json")
+    @ApiOperation(value = "修改用户信息",httpMethod = "POST")
+    public SingleResult updateUserInfo(@ApiParam(name="user",value = "用户实体类",required = true)
+                              @RequestBody(required = true)User user
+    ){
+        return baseService.updateUser(user);
+    }
 
     @PostMapping(value = "/upload/image")
     @ApiOperation(value = "上传图片",httpMethod = "POST")
@@ -66,6 +59,7 @@ public class BaseController {
              String imagePath = IMAGE_DIR+temp;
              if (flag==1){
                  //保存到数据库
+                 return baseService.saveImage(imageUrl,imagePath);
              }
              return new SingleResult(imageUrl);
     }
