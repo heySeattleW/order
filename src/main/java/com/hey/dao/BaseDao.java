@@ -3,6 +3,7 @@ package com.hey.dao;
 import com.github.pagehelper.Page;
 import com.hey.entity.Image;
 import com.hey.entity.Order;
+import com.hey.entity.SysMember;
 import com.hey.entity.User;
 import org.apache.ibatis.annotations.*;
 
@@ -42,6 +43,15 @@ public interface BaseDao {
     @Insert("insert into user(user_id,tel,desc,password,user_status,update_time)" +
             " values(#{userId},#{tel},#{desc},#{password},0,now())")
     Long saveUser(User user);
+
+    /**
+     * 用户登录
+     * @param tel
+     * @param password
+     * @return
+     */
+    @Select("select * from user where tel=#{tel} and password=#{password} limit 1")
+    User userLogin(@Param("tel") String tel,@Param("password") String password);
 
     /**
      * 保存订单
@@ -163,5 +173,35 @@ public interface BaseDao {
             "        </if></script>")
     Page<Order> getOrderList(@Param("tel")String tel,@Param("cardNum")String cardNum,@Param("imageMd5")String imageMd5,@Param("userId")Long userId,@Param("orderStatus")Integer orderStatus,@Param("flag") int flag,@Param("orderNo")String orderNo);
 
+
+
+
+
+
+
+    //管理员相关
+    //管理员登录
+    @Select("select * from sys_member where sys_name=#{sysName} and sys_pass=#{sysPass} limit 1")
+    SysMember sysLogin(@Param("sysName") String sysName,@Param("sysPass")String sysPass);
+
+    //通过sysId判断是不是经理
+    @Select("select sys_power from sys_member where sys_id=#{sysId}")
+    boolean sysUserIsManager(Long sysId);
+
+    //经理添加管理员
+    @Insert("insert into sys_member(sys_id,sys_name,sys_pass,sys_power,update_time) values (#{sysId},#{sysName},#{sysPass},0,now())")
+    void addSysUser(SysMember sysMember);
+
+    //添加管理员之前判断管理员是否存在
+    @Select("select count(1) from sys_member where sys_name=#{sysName}")
+    boolean sysNameIsExist(String sysName);
+
+    //经理删除管理员
+    @Delete("delete from sys_member where sys_id=#{sysId}")
+    void deleteSysUser(Long sysId);
+
+    //管理员列表
+    @Select("select * from sys_member")
+    Page<SysMember> getSysUserList();
 
 }

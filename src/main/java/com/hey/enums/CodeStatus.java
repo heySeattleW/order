@@ -11,7 +11,9 @@ public enum CodeStatus {
     NO_PERMISSION(401,"无权访问"),
     TOKEN_EXPIRE(403,"凭证过期"),
     NO_AUTHENTICATION(402,"未认证"),
-    ERROR(500,"服务器错误");
+    NAME_ALREADY_EXIST(405,"用户名已存在"),
+    ERROR(500,"服务器错误"),
+    MISS_NAME(501,"账号密码不存在");
 
     private int code;
     private String msg;

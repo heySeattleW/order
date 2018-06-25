@@ -44,6 +44,11 @@ public class MultiResult<T> extends BaseResult {
         this.pageInfo = pageInfo;
     }
 
+    public void setData(String data, ResultPageInfo pageInfo) {
+        this.data = data;
+        this.pageInfo = pageInfo;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("{");
