@@ -23,7 +23,7 @@ public class SwaggerConfig {
 //                .host("redpack.zhonglianqihua.com")
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.ophylink.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.hey.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
