@@ -55,6 +55,7 @@ public class BaseResult implements Serializable {
     }
 
     public void setMsg(CodeStatus code) {
+        this.code = code.getCode();
         this.msg = code.getMsg(code.getCode());
     }
 

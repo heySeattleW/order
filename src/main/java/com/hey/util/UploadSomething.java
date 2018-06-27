@@ -46,9 +46,9 @@ public class UploadSomething {
     }
 
     //上传多张图片,返回一个图片相对路径的数组
-    public static String uploadImgs(String path, MultipartFile[] imgs, String dir)throws Exception {
+    public static String[] uploadImgs(String path, MultipartFile[] imgs, String dir){
         File dirs = new File(path);
-        String name="";
+        String[] name={};
         if (!dirs.exists()) {
             dirs.mkdirs();
 
@@ -57,11 +57,11 @@ public class UploadSomething {
         for (MultipartFile img : imgs) {
 
             if (img.getSize() > 102400 * 102400) {
-                name="文件太大了";
+                name[i]="文件太大了";
                 i++;
             } else if (!img.getContentType().equals("image/jpeg") && !img.getContentType().equals("image/bmp")&& !img.getContentType().equals("image/jpg")
                     && !img.getContentType().equals("image/png") && !img.getContentType().equals("image/gif")) {
-                name="文件格式不对";
+                name[i]="文件格式不对";
                 i++;
             }else {
                 String imgName = img.getOriginalFilename();
@@ -74,11 +74,11 @@ public class UploadSomething {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                name = dir + "/"+ imgMD5 + suffix+",";
+                name[i] = dir + "/"+ imgMD5 + suffix+",";
                 i++;
             }
         }
-        return name.substring(0,name.length()-1);//返回图片存放的相对路径
+        return name;//返回图片存放的相对路径
     }
 
     //上传视频(目前只支持上传MP4)

@@ -10,7 +10,7 @@ public class BaseEntity implements Serializable {
 
     public Long id;
 
-    public Timestamp update_time;
+    public String update_time;
 
     public Long getId() {
         return id;
@@ -20,11 +20,13 @@ public class BaseEntity implements Serializable {
         this.id = id;
     }
 
-    public Timestamp getUpdate_time() {
-        return update_time;
+
+
+    public BaseEntity() {
     }
 
-    public void setUpdate_time(Timestamp update_time) {
+    public BaseEntity(Long id, String update_time) {
+        this.id = id;
         this.update_time = update_time;
     }
 }

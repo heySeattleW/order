@@ -1,11 +1,12 @@
 package com.hey.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.hey.dao.BaseDao;
 import com.hey.entity.Image;
-import com.hey.entity.Order;
+import com.hey.entity.OrderDetail;
 import com.hey.entity.SysMember;
 import com.hey.entity.User;
 import com.hey.enums.CodeStatus;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.hey.enums.CodeStatus.TEL_EXIST;
 
 /**
  * Created by heer on 2018/6/20.
@@ -42,16 +45,23 @@ public class BaseService {
      * @return
      */
     public SingleResult saveUser(User user,String imageUrl){
+        SingleResult result = new SingleResult();
         if(imageIsUnique(imageUrl)){
             //图片是唯一的
-            Long userId = Long.valueOf(RandomNumberGenerator.generateNumber2());
-            user.setUserId(userId);
-            baseDao.saveUser(user);
-            return new SingleResult(userId);
+            //判断电话号码是否存在
+            if(baseDao.telIsExist(user.getTel())){
+                Long userId = Long.valueOf(RandomNumberGenerator.generateNumber2());
+                user.setUserId(userId);
+                baseDao.saveUser(user);
+                result.setData(userId);
+            }else {
+                result.setMsg(TEL_EXIST);
+            }
         }else {
             //图片不是唯一的，驳回注册请求
-            return new SingleResult("公章识别失败，请重新上传");
+            result.setMsg(CodeStatus.MISS_IMAGE);
         }
+        return result;
     }
 
     /**
@@ -88,7 +98,7 @@ public class BaseService {
      * @param imageUrl
      * @return
      */
-    public SingleResult saveOrder(Order order,String imageUrl){
+    public SingleResult saveOrder(OrderDetail order,String imageUrl){
         if(imageIsUnique(imageUrl)){
             //图片是唯一的，保存订单
             String orderNo = UUIDUtil.getTimeStamp();
@@ -121,7 +131,8 @@ public class BaseService {
         Page<User> userPage = baseDao.getUserList(flag, userStatus, tel);
         ResultPageInfo pageInfo = new ResultPageInfo(userPage.getPages(),userPage.getPageNum(),userPage.getTotal(),userPage.getPageSize());
         String userList = JSON.toJSONString(userPage.getResult());
-        return new MultiResult(userList,pageInfo);
+        List<User> users = JSON.parseObject(userList,new TypeReference<List<User>>(){});
+        return new MultiResult(users,pageInfo);
     }
 
     /**
@@ -130,12 +141,13 @@ public class BaseService {
      * @param flag
      * @return
      */
-    public MultiResult getOrderList(String tel,String cardNum,String imageMd5,int flag,Long userId,String orderNo,int orderStatus,int start,int size){
+    public MultiResult getOrderList(String tel,String cardNum,String imageMd5,int flag,Long userId,String orderNo,Integer orderStatus,int start,int size){
         PageHelper.startPage(start,size);
-        Page<Order> orderPage = baseDao.getOrderList(tel,cardNum,imageMd5,userId,orderStatus,flag,orderNo);
+        Page<OrderDetail> orderPage = baseDao.getOrderList(tel,cardNum,imageMd5,userId,orderStatus,flag,orderNo);
         ResultPageInfo pageInfo = new ResultPageInfo(orderPage.getPages(),orderPage.getPageNum(),orderPage.getTotal(),orderPage.getPageSize());
         String orderList = JSON.toJSONString(orderPage.getResult());
-        return new MultiResult(orderList,pageInfo);
+        List<OrderDetail> users = JSON.parseObject(orderList,new TypeReference<List<OrderDetail>>(){});
+        return new MultiResult(users,pageInfo);
     }
 
     /**
@@ -149,7 +161,8 @@ public class BaseService {
         Page<Image> imagePage = baseDao.getImageList(imageMd5,flag);
         ResultPageInfo pageInfo = new ResultPageInfo(imagePage.getPages(),imagePage.getPageNum(),imagePage.getTotal(),imagePage.getPageSize());
         String imageList = JSON.toJSONString(imagePage.getResult());
-        return new MultiResult(imageList,pageInfo);
+        List<Image> images = JSON.parseObject(imageList,new TypeReference<List<Image>>(){});
+        return new MultiResult(images,pageInfo);
     }
 
     /**
@@ -225,7 +238,8 @@ public class BaseService {
             Page<SysMember> members = baseDao.getSysUserList();
             ResultPageInfo pageInfo = new ResultPageInfo(members.getPages(),members.getPageNum(),members.getTotal(),members.getPageSize());
             String memberList = JSON.toJSONString(members.getResult());
-            result.setData(memberList,pageInfo);
+            List<SysMember> sysMembers = JSON.parseObject(memberList,new TypeReference<List<SysMember>>(){});
+            result.setData(sysMembers,pageInfo);
         }else {
             //不是经理
             result.setMsg(CodeStatus.NO_PERMISSION);

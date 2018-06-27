@@ -1,9 +1,11 @@
 package com.hey.entity;
 
+import java.sql.Timestamp;
+
 /**
  * Created by heer on 2018/6/20.
  */
-public class Order extends BaseEntity {
+public class OrderDetail extends BaseEntity {
 
     private Integer orderStatus;
 
@@ -281,5 +283,36 @@ public class Order extends BaseEntity {
                 .append(orderTimeDay).append('\"');
         sb.append('}');
         return sb.toString();
+    }
+
+    public OrderDetail(Long id, String update_time, Integer orderStatus, Long userId, String imageUrl, String imageMd5, String tel, String orderNo, String cardNum, String goodsType, String isBao, String goodsNum, String targetAddr, String userName, String payWay, String region, String businessName, String beginTimeYear, String beginTimeMonth, String beginTimeDay, String endTimeYear, String endTimeMonth, String endTimeDay, String orderTimeYear, String orderTimeMonth, String orderTimeDay) {
+        super(id, update_time);
+        this.orderStatus = orderStatus;
+        this.userId = userId;
+        this.imageUrl = imageUrl;
+        this.imageMd5 = imageMd5;
+        this.tel = tel;
+        this.orderNo = orderNo;
+        this.cardNum = cardNum;
+        this.goodsType = goodsType;
+        this.isBao = isBao;
+        this.goodsNum = goodsNum;
+        this.targetAddr = targetAddr;
+        this.userName = userName;
+        this.payWay = payWay;
+        this.region = region;
+        this.businessName = businessName;
+        this.beginTimeYear = beginTimeYear;
+        this.beginTimeMonth = beginTimeMonth;
+        this.beginTimeDay = beginTimeDay;
+        this.endTimeYear = endTimeYear;
+        this.endTimeMonth = endTimeMonth;
+        this.endTimeDay = endTimeDay;
+        this.orderTimeYear = orderTimeYear;
+        this.orderTimeMonth = orderTimeMonth;
+        this.orderTimeDay = orderTimeDay;
+    }
+
+    public OrderDetail() {
     }
 }

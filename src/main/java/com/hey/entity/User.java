@@ -1,5 +1,7 @@
 package com.hey.entity;
 
+import java.sql.Timestamp;
+
 /**
  * Created by heer on 2018/6/20.
  */
@@ -74,5 +76,17 @@ public class User extends BaseEntity{
                 .append(userStatus);
         sb.append('}');
         return sb.toString();
+    }
+
+    public User(Long id, String update_time, Long userId, String tel, String desc, String password, Integer userStatus) {
+        super(id, update_time);
+        this.userId = userId;
+        this.tel = tel;
+        this.desc = desc;
+        this.password = password;
+        this.userStatus = userStatus;
+    }
+
+    public User() {
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class MultiResult<T> extends BaseResult {
 
-    private String data;
+    private T data;
 
     private ResultPageInfo pageInfo;
 
@@ -26,25 +26,25 @@ public class MultiResult<T> extends BaseResult {
         super();
     }
 
-    public MultiResult(String data) {
+    public MultiResult(T data) {
         super();
         this.data = data;
     }
 
-    public String getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(T data) {
         this.data = data;
     }
 
-    public MultiResult(String data, ResultPageInfo pageInfo) {
+    public MultiResult(T data, ResultPageInfo pageInfo) {
         this.data = data;
         this.pageInfo = pageInfo;
     }
 
-    public void setData(String data, ResultPageInfo pageInfo) {
+    public void setData(T data, ResultPageInfo pageInfo) {
         this.data = data;
         this.pageInfo = pageInfo;
     }

@@ -2,7 +2,7 @@ package com.hey.dao;
 
 import com.github.pagehelper.Page;
 import com.hey.entity.Image;
-import com.hey.entity.Order;
+import com.hey.entity.OrderDetail;
 import com.hey.entity.SysMember;
 import com.hey.entity.User;
 import org.apache.ibatis.annotations.*;
@@ -34,6 +34,14 @@ public interface BaseDao {
     @Select("select count(1) from image where image_md5=#{imageMd5}")
     boolean imageIsUnique(String imageMd5);
 
+    /**
+     * 判断电话号码是否存在
+     * @param tel
+     * @return
+     */
+    @Select("select count(1) from user where tel=#{tel}")
+    boolean telIsExist(String tel);
+
 
     /**
      * 保存用户
@@ -58,9 +66,9 @@ public interface BaseDao {
      * @param order
      * @return
      */
-    @Insert("insert into order(order_no,update_time,order_status,user_id,image_url,image_md5,tel,card_num,goods_type,isBao,goods_num,target_addr,user_name,pay_way,region,business_name,begin_time_year,begin_time_month,begin_time_day,end_time_year,end_time_month,end_time_day,order_time_year,order_time_month,order_time_day) " +
+    @Insert("insert into order_detail(order_no,update_time,order_status,user_id,image_url,image_md5,tel,card_num,goods_type,isBao,goods_num,target_addr,user_name,pay_way,region,business_name,begin_time_year,begin_time_month,begin_time_day,end_time_year,end_time_month,end_time_day,order_time_year,order_time_month,order_time_day) " +
             "values (#{orderNo},now(),0,#{userId},#{imageUrl},#{imageMd5},#{tel},#{cardNum},#{goodsType},#{isBao},#{goodsNum},#{targetAddr},#{userName},#{payWay},#{region},#{businessName},#{beginTimeYear},#{beginTimeMonth},#{beginTimeDay},#{endTimeYear},#{endTimeMonth},#{endTimeDay},#{orderTimeYear},#{orderTimeMonth},#{orderTimeDay})")
-    Long saveOrder(Order order);
+    Long saveOrder(OrderDetail order);
 
     /**
      * 更新用户信息
@@ -141,7 +149,7 @@ public interface BaseDao {
      * @param flag
      * @return
      */
-    @Select("<script>select * from order where 1=1\n" +
+    @Select("<script>select * from order_detail where 1=1\n" +
             "        <if test=\"tel!=null and tel!=''\">\n" +
             "            and tel like\n" +
             "            concat(concat('%',#{tel}),'%')\n" +
@@ -171,7 +179,7 @@ public interface BaseDao {
             "        <if test=\"flag==1\">\n" +
             "            desc\n" +
             "        </if></script>")
-    Page<Order> getOrderList(@Param("tel")String tel,@Param("cardNum")String cardNum,@Param("imageMd5")String imageMd5,@Param("userId")Long userId,@Param("orderStatus")Integer orderStatus,@Param("flag") int flag,@Param("orderNo")String orderNo);
+    Page<OrderDetail> getOrderList(@Param("tel")String tel, @Param("cardNum")String cardNum, @Param("imageMd5")String imageMd5, @Param("userId")Long userId, @Param("orderStatus")Integer orderStatus, @Param("flag") int flag, @Param("orderNo")String orderNo);
 
 
 

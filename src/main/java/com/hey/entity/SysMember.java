@@ -1,5 +1,7 @@
 package com.hey.entity;
 
+import java.sql.Timestamp;
+
 /**
  * Created by hey on 2018/6/23.
  */
@@ -58,5 +60,16 @@ public class SysMember extends BaseEntity {
                 .append(sysPower);
         sb.append('}');
         return sb.toString();
+    }
+
+    public SysMember(Long id, String update_time, Long sysId, String sysName, String sysPass, int sysPower) {
+        super(id, update_time);
+        this.sysId = sysId;
+        this.sysName = sysName;
+        this.sysPass = sysPass;
+        this.sysPower = sysPower;
+    }
+
+    public SysMember() {
     }
 }

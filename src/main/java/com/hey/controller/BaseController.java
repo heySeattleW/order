@@ -1,6 +1,6 @@
 package com.hey.controller;
 
-import com.hey.entity.Order;
+import com.hey.entity.OrderDetail;
 import com.hey.entity.SysMember;
 import com.hey.entity.User;
 import com.hey.result.MultiResult;
@@ -9,7 +9,6 @@ import com.hey.service.BaseService;
 import com.hey.util.UploadSomething;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +31,7 @@ public class BaseController {
     @ApiOperation(value = "注册用户进入系统",httpMethod = "POST")
     public SingleResult addUser(@ApiParam(name="user",value = "用户实体类",required = true)
                           @RequestBody(required = true)User user,
-                              @ApiParam(name="imageUrl",value = "昵称",required = true)
+                              @ApiParam(name="imageUrl",value = "公章路径",required = true)
                           @RequestParam(value = "imageUrl",required = true)String imageUrl
     ){
         return baseService.saveUser(user,imageUrl);
@@ -49,7 +48,7 @@ public class BaseController {
     }
 
 
-    @PostMapping(value = "/update",produces="application/json")
+    @PostMapping(value = "/user/update",produces="application/json")
     @ApiOperation(value = "修改用户信息",httpMethod = "POST")
     public SingleResult updateUserInfo(@ApiParam(name="user",value = "用户实体类",required = true)
                               @RequestBody(required = true)User user
@@ -75,11 +74,26 @@ public class BaseController {
              return new SingleResult(imageUrl);
     }
 
+    @PostMapping(value = "/upload/image/batch")
+    @ApiOperation(value = "批量上传图片(暂不可用)",httpMethod = "POST")
+    public SingleResult userUploadImages(@ApiParam(name="image",value = "图片",required = true)
+                                        @RequestBody(required = true)MultipartFile[] image,
+                                        HttpServletRequest request){
+        String path = request.getServletContext().getRealPath(IMAGE_DIR);
+        String[] temp = UploadSomething.uploadImgs(path,image,IMAGE_DIR);
+        for(int i=0;i<temp.length;i++){
+
+        }
+        String imageUrl = SERVER_URL+temp;
+        String imagePath = IMAGE_DIR+temp;
+        return new SingleResult(imageUrl);
+    }
+
     @PostMapping(value = "/order/save",produces="application/json")
     @ApiOperation(value = "保存订单",httpMethod = "POST")
     public SingleResult addOrder(@ApiParam(name="order",value = "订单实体类",required = true)
-                                @RequestBody(required = true)Order order,
-                                @ApiParam(name="imageUrl",value = "昵称",required = true)
+                                @RequestBody(required = true)OrderDetail order,
+                                @ApiParam(name="imageUrl",value = "公章路径",required = true)
                                 @RequestParam(value = "imageUrl",required = true)String imageUrl
     ){
         return baseService.saveOrder(order,imageUrl);
@@ -118,7 +132,7 @@ public class BaseController {
     }
 
     @GetMapping(value = "/order/list",produces="application/json")
-    @ApiOperation(value = "条件查询公章列表",httpMethod = "GET")
+    @ApiOperation(value = "条件查询订单列表",httpMethod = "GET")
     public MultiResult getOrderList(@ApiParam(name="flag",value = "flag=0表示按时间从低到高排序，1表示从高到低排序",required = true)
                                     @RequestParam(value = "flag",required = true)Integer flag,
                                     @ApiParam(name="orderStatus",value = "orderStatus按订单状态进行筛选",required = false)

@@ -13,7 +13,9 @@ public enum CodeStatus {
     NO_AUTHENTICATION(402,"未认证"),
     NAME_ALREADY_EXIST(405,"用户名已存在"),
     ERROR(500,"服务器错误"),
-    MISS_NAME(501,"账号密码不存在");
+    MISS_NAME(501,"账号密码不存在"),
+    MISS_IMAGE(502,"公章识别失败，请重新上传"),
+    TEL_EXIST(406,"电话号码已存在，请登录");
 
     private int code;
     private String msg;

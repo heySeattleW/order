@@ -1,5 +1,7 @@
 package com.hey.entity;
 
+import java.sql.Timestamp;
+
 /**
  * Created by heer on 2018/6/20.
  */
@@ -41,6 +43,16 @@ public class Image extends BaseEntity {
         this.imageMd5 = imageMd5;
     }
 
+    public Image(Long id, String update_time, String imageUrl, String imagePath, String imageMd5) {
+        super(id, update_time);
+        this.imageUrl = imageUrl;
+        this.imagePath = imagePath;
+        this.imageMd5 = imageMd5;
+    }
+
+    public Image() {
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("{");
@@ -56,5 +68,8 @@ public class Image extends BaseEntity {
                 .append(update_time).append('\"');
         sb.append('}');
         return sb.toString();
+
+
     }
+
 }
