@@ -75,19 +75,42 @@ public class BaseController {
     }
 
     @PostMapping(value = "/upload/image/batch")
-    @ApiOperation(value = "批量上传图片(暂不可用)",httpMethod = "POST")
-    public SingleResult userUploadImages(@ApiParam(name="image",value = "图片",required = true)
+    @ApiOperation(value = "批量上传图片",httpMethod = "POST")
+    public SingleResult uploadImages(@ApiParam(name="image",value = "图片",required = true)
                                         @RequestBody(required = true)MultipartFile[] image,
+                                        @ApiParam(name="flag",value = "是否需要保存，保存为1，不保存为0，用户第一次提交需要保存。后面申请发货和注册就不保存",required = true)
+                                        @RequestParam(value = "flag",required = true)Integer flag,
                                         HttpServletRequest request){
-        String path = request.getServletContext().getRealPath(IMAGE_DIR);
-        String[] temp = UploadSomething.uploadImgs(path,image,IMAGE_DIR);
-        for(int i=0;i<temp.length;i++){
-
+        String[] temps = {};
+        if(image.length>0) {
+            for (int i = 0; i < image.length; i++) {
+                String path = request.getServletContext().getRealPath(IMAGE_DIR);
+                String temp = UploadSomething.uploadImg(path, image[i], IMAGE_DIR);
+                String imageUrl = SERVER_URL + temp;
+                String imagePath = IMAGE_DIR + temp;
+                if (flag == 1) {
+                    //保存到数据库
+                    baseService.saveImage(imageUrl, imagePath);
+                }
+            }
         }
-        String imageUrl = SERVER_URL+temp;
-        String imagePath = IMAGE_DIR+temp;
-        return new SingleResult(imageUrl);
+        return new SingleResult();
     }
+
+//    @PostMapping(value = "/upload/image/batch")
+//    @ApiOperation(value = "批量上传图片(暂不可用)",httpMethod = "POST")
+//    public SingleResult userUploadImages(@ApiParam(name="image",value = "图片",required = true)
+//                                        @RequestBody(required = true)MultipartFile[] image,
+//                                        HttpServletRequest request){
+//        String path = request.getServletContext().getRealPath(IMAGE_DIR);
+//        String[] temp = UploadSomething.uploadImgs(path,image,IMAGE_DIR);
+//        for(int i=0;i<temp.length;i++){
+//
+//        }
+//        String imageUrl = SERVER_URL+temp;
+//        String imagePath = IMAGE_DIR+temp;
+//        return new SingleResult(imageUrl);
+//    }
 
     @PostMapping(value = "/order/save",produces="application/json")
     @ApiOperation(value = "保存订单",httpMethod = "POST")

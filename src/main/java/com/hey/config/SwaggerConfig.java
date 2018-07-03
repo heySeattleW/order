@@ -20,7 +20,7 @@ public class SwaggerConfig {
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-//                .host("redpack.zhonglianqihua.com")
+                .host("47.96.237.198")
                 .apiInfo(apiInfo())
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.hey.controller"))

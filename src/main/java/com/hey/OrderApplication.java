@@ -1,14 +1,17 @@
 package com.hey;
 
 import com.github.pagehelper.PageHelper;
+import javafx.application.Application;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Properties;
 
 @SpringBootApplication
-public class OrderApplication {
+public class OrderApplication extends SpringBootServletInitializer {
 
 	//配置mybatis的分页插件pageHelper
 	@Bean
@@ -23,7 +26,14 @@ public class OrderApplication {
 		return pageHelper;
 	}
 
+
+
 	public static void main(String[] args) {
 		SpringApplication.run(OrderApplication.class, args);
+	}
+
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+		return builder.sources(Application.class);
 	}
 }
