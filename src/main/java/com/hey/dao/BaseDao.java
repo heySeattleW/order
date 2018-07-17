@@ -23,16 +23,16 @@ public interface BaseDao {
      * 保存图片（公章）
      * @param
      */
-    @Insert("insert into image(image_path,image_url,image_md5,update_time) values (#{imagePath},#{imageUrl},#{imageMd5},now())")
-    void saveImage(@Param("imageMd5")String imageMd5,@Param("imageUrl")String imageUrl,@Param("imagePath")String imagePath);
+    @Insert("insert into image(image_path,image_url,image_md5,update_time,tel) values (#{imagePath},#{imageUrl},#{imageMd5},now(),#{tel})")
+    void saveImage(@Param("tel")String tel,@Param("imageMd5")String imageMd5,@Param("imageUrl")String imageUrl,@Param("imagePath")String imagePath);
 
     /**
      * 判断是否有这个公章
      * @param imageMd5
      * @return
      */
-    @Select("select count(1) from image where image_md5=#{imageMd5}")
-    boolean imageIsUnique(String imageMd5);
+    @Select("select count(1) from image where image_md5=#{imageMd5} and tel=#{tel}")
+    boolean imageIsUnique(@Param("imageMd5") String imageMd5,@Param("tel")String tel);
 
     /**
      * 判断电话号码是否存在
@@ -48,9 +48,18 @@ public interface BaseDao {
      * @param user
      * @return
      */
-    @Insert("insert into user(user_id,tel,desc,password,user_status,update_time)" +
-            " values(#{userId},#{tel},#{desc},#{password},0,now())")
+    @Insert("insert into user(user_id,tel,user_desc,password,user_status,update_time,image_url,image_md5)" +
+            " values(#{userId},#{tel},#{userDesc},#{password},1,now(),#{imageUrl},#{imageMd5})")
     Long saveUser(User user);
+
+    /**
+     * 更新公章对应的用户信息
+     * @param userId
+     * @param tel
+     * @param imageMd5
+     */
+    @Update("update image set user_id=#{userId} and tel=#{tel} where image_md5=#{imageMd5}")
+    void saveUserUpdateImage(@Param("userId") Long userId,@Param("tel") String tel,@Param("imageMd5") String imageMd5);
 
     /**
      * 用户登录
@@ -58,7 +67,7 @@ public interface BaseDao {
      * @param password
      * @return
      */
-    @Select("select * from user where tel=#{tel} and password=#{password} limit 1")
+    @Select("select * from user where tel=#{tel} and password=#{password} and user_status!=1 limit 1")
     User userLogin(@Param("tel") String tel,@Param("password") String password);
 
     /**
@@ -66,8 +75,8 @@ public interface BaseDao {
      * @param order
      * @return
      */
-    @Insert("insert into order_detail(order_no,update_time,order_status,user_id,image_url,image_md5,tel,card_num,goods_type,isBao,goods_num,target_addr,user_name,pay_way,region,business_name,begin_time_year,begin_time_month,begin_time_day,end_time_year,end_time_month,end_time_day,order_time_year,order_time_month,order_time_day) " +
-            "values (#{orderNo},now(),0,#{userId},#{imageUrl},#{imageMd5},#{tel},#{cardNum},#{goodsType},#{isBao},#{goodsNum},#{targetAddr},#{userName},#{payWay},#{region},#{businessName},#{beginTimeYear},#{beginTimeMonth},#{beginTimeDay},#{endTimeYear},#{endTimeMonth},#{endTimeDay},#{orderTimeYear},#{orderTimeMonth},#{orderTimeDay})")
+    @Insert("insert into order_detail(order_no,update_time,order_status,user_id,image_url,image_md5,tel,card_num,goods_type,is_bao,goods_num,target_addr,user_name,pay_way,region,business_name,begin_time_year,begin_time_month,begin_time_day,end_time_year,end_time_month,end_time_day,order_time_year,order_time_month,order_time_day,receive_tel) " +
+            "values (#{orderNo},now(),1,#{userId},#{imageUrl},#{imageMd5},#{tel},#{cardNum},#{goodsType},#{isBao},#{goodsNum},#{targetAddr},#{userName},#{payWay},#{region},#{businessName},#{beginTimeYear},#{beginTimeMonth},#{beginTimeDay},#{endTimeYear},#{endTimeMonth},#{endTimeDay},#{orderTimeYear},#{orderTimeMonth},#{orderTimeDay},#{receiveTel})")
     Long saveOrder(OrderDetail order);
 
     /**
@@ -80,18 +89,18 @@ public interface BaseDao {
             "            <if test=\"tel!=null and tel!=''\">\n" +
             "                tel=#{tel},\n" +
             "            </if>\n" +
-            "            <if test=\"desc!=null and desc!=''\">\n" +
-            "                'desc'=#{desc},\n" +
+            "            <if test=\"userDesc!=null and userDesc!=''\">\n" +
+            "                user_desc=#{userDesc},\n" +
             "            </if>\n" +
             "            <if test=\"password!=null and password!=''\">\n" +
             "                password=#{password},\n" +
             "            </if>\n" +
-            "            <if test=\"user_status!=null\">\n" +
+            "            <if test=\"userStatus!=null\">\n" +
             "                user_status=#{userStatus},\n" +
             "            </if>\n" +
             "            update_time=now()\n" +
             "        </set>\n" +
-            "        where user_id=#{userId}" +
+            "        where image_md5=#{imageMd5}" +
             "</script>")
     void updateUser(User user);
 
@@ -104,6 +113,10 @@ public interface BaseDao {
             "            and image_md5 like\n" +
             "            concat(concat('%',#{imageMd5}),'%')\n" +
             "        </if>\n" +
+            "        <if test=\"tel!=null and tel!=''\">\n" +
+            "            and tel like\n" +
+            "            concat(concat('%',#{tel}),'%')\n" +
+            "        </if>\n" +
             "        order by update_time\n" +
             "        <if test=\"flag==0\">\n" +
             "            asc\n" +
@@ -111,7 +124,7 @@ public interface BaseDao {
             "        <if test=\"flag==1\">\n" +
             "            desc\n" +
             "        </if></script>")
-    Page<Image> getImageList(@Param("imageMd5") String imageMd5,@Param("flag") int flag);
+    Page<Image> getImageList(@Param("imageMd5") String imageMd5,@Param("tel") String tel,@Param("flag") Integer flag);
 
 
     /**
@@ -129,6 +142,9 @@ public interface BaseDao {
             "        <if test=\"userStatus!=null\">\n" +
             "            and user_status=#{userStatus}\n" +
             "        </if>\n" +
+            "        <if test=\"userId!=null\">\n" +
+            "            and user_id=#{userId}\n" +
+            "        </if>\n" +
             "        order by update_time\n" +
             "        <if test=\"flag==0\">\n" +
             "            asc\n" +
@@ -136,7 +152,7 @@ public interface BaseDao {
             "        <if test=\"flag==1\">\n" +
             "            desc\n" +
             "        </if></script>")
-    Page<User> getUserList(@Param("flag")int flag,@Param("userStatus")int userStatus,@Param("tel")String tel);
+    Page<User> getUserList(@Param("flag")Integer flag,@Param("userStatus")Integer userStatus,@Param("tel")String tel,@Param("userId")Long userId);
 
 
     /**
@@ -169,6 +185,9 @@ public interface BaseDao {
             "        <if test=\"userId!=null\">\n" +
             "            and user_id=#{userId}\n" +
             "        </if>\n" +
+            "        <if test=\"time1!=null and time2!=null\">\n" +
+            "            and update_time between time1 and time2\n" +
+            "        </if>\n" +
             "        <if test=\"orderStatus!=null\">\n" +
             "            and order_status=#{orderStatus}\n" +
             "        </if>\n" +
@@ -179,7 +198,7 @@ public interface BaseDao {
             "        <if test=\"flag==1\">\n" +
             "            desc\n" +
             "        </if></script>")
-    Page<OrderDetail> getOrderList(@Param("tel")String tel, @Param("cardNum")String cardNum, @Param("imageMd5")String imageMd5, @Param("userId")Long userId, @Param("orderStatus")Integer orderStatus, @Param("flag") int flag, @Param("orderNo")String orderNo);
+    Page<OrderDetail> getOrderList(@Param("tel")String tel, @Param("cardNum")String cardNum, @Param("imageMd5")String imageMd5, @Param("userId")Long userId, @Param("orderStatus")Integer orderStatus, @Param("flag") Integer flag, @Param("orderNo")String orderNo,@Param("time1")String time1,@Param("time2")String time2);
 
 
 
@@ -194,7 +213,7 @@ public interface BaseDao {
 
     //通过sysId判断是不是经理
     @Select("select sys_power from sys_member where sys_id=#{sysId}")
-    boolean sysUserIsManager(Long sysId);
+    Boolean sysUserIsManager(Long sysId);
 
     //经理添加管理员
     @Insert("insert into sys_member(sys_id,sys_name,sys_pass,sys_power,update_time) values (#{sysId},#{sysName},#{sysPass},0,now())")
@@ -202,7 +221,7 @@ public interface BaseDao {
 
     //添加管理员之前判断管理员是否存在
     @Select("select count(1) from sys_member where sys_name=#{sysName}")
-    boolean sysNameIsExist(String sysName);
+    Boolean sysNameIsExist(String sysName);
 
     //经理删除管理员
     @Delete("delete from sys_member where sys_id=#{sysId}")
@@ -211,5 +230,13 @@ public interface BaseDao {
     //管理员列表
     @Select("select * from sys_member")
     Page<SysMember> getSysUserList();
+
+    @Insert("insert into image(image_path,image_url,image_md5) values (#{imagePath},#{imageUrl},#{imageMd5})")
+    void addImage(Image image);
+
+
+    //通过电话获取md5
+    @Select("select * from user where tel=#{tel}")
+    User getMd5ByTel(String tel);
 
 }

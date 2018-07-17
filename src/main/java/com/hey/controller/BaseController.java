@@ -6,6 +6,7 @@ import com.hey.entity.User;
 import com.hey.result.MultiResult;
 import com.hey.result.SingleResult;
 import com.hey.service.BaseService;
+import com.hey.util.ImageMd5Util;
 import com.hey.util.UploadSomething;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -14,6 +15,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.hey.enums.CodeStatus.FAIL_DOWNLOAD;
+import static com.hey.service.BaseService.SAVE_PATH;
 
 /**
  * Created by heer on 2018/6/11.
@@ -24,17 +32,19 @@ public class BaseController {
     @Autowired
     private BaseService baseService;
 
-    public static final String IMAGE_DIR = "/public/image/";
-    public static final String SERVER_URL = "";
+    public static final String IMAGE_DIR = "/WEB-INF/classes/public/image";
+    public static final String SERVER_URL = "http://47.96.237.198/order/image/";
 
     @PostMapping(value = "/register",produces="application/json")
     @ApiOperation(value = "注册用户进入系统",httpMethod = "POST")
     public SingleResult addUser(@ApiParam(name="user",value = "用户实体类",required = true)
-                          @RequestBody(required = true)User user,
+                          @RequestParam(value = "user",required = true)String user,
                               @ApiParam(name="imageUrl",value = "公章路径",required = true)
-                          @RequestParam(value = "imageUrl",required = true)String imageUrl
+                          @RequestParam(value = "imageUrl",required = true)String imageUrl,
+                                @ApiParam(name="clientMd5",value = "客户端生成的md5",required = true)
+                                    @RequestParam(value = "clientMd5",required = true)String clientMd5
     ){
-        return baseService.saveUser(user,imageUrl);
+        return baseService.saveUser(user,imageUrl,clientMd5);
     }
 
     @PostMapping(value = "/user/login",produces="application/json")
@@ -51,9 +61,11 @@ public class BaseController {
     @PostMapping(value = "/user/update",produces="application/json")
     @ApiOperation(value = "修改用户信息",httpMethod = "POST")
     public SingleResult updateUserInfo(@ApiParam(name="user",value = "用户实体类",required = true)
-                              @RequestBody(required = true)User user
+                              @RequestParam(value = "user",required = true)String user,
+                                       @ApiParam(name="imageUrl",value = "公章地址",required = true)
+                                       @RequestParam(value = "imageUrl",required = true)String imageUrl
     ){
-        return baseService.updateUser(user);
+        return baseService.updateUser(user,imageUrl);
     }
 
     @PostMapping(value = "/upload/image")
@@ -62,16 +74,31 @@ public class BaseController {
                                   @RequestBody(required = true)MultipartFile image,
                                       @ApiParam(name="flag",value = "是否需要保存，保存为1，不保存为0，用户第一次提交需要保存。后面申请发货和注册就不保存",required = true)
                                       @RequestParam(value = "flag",required = true)Integer flag,
+                                        @ApiParam(name="tel",value = "电话号码",required = false)
+                                            @RequestParam(value = "tel",required = false)String tel,
                                   HttpServletRequest request){
              String path = request.getServletContext().getRealPath(IMAGE_DIR);
              String temp = UploadSomething.uploadImg(path,image,IMAGE_DIR);
              String imageUrl = SERVER_URL+temp;
              String imagePath = IMAGE_DIR+temp;
+             String fileName = System.currentTimeMillis()+".png";
+             SingleResult result = new SingleResult();
+//             try {
+//                 ImageMd5Util.downLoadFromUrl(imageUrl,fileName,SAVE_PATH);
+//             }catch (Exception e){
+//                 e.printStackTrace();
+//                 result.setMsg(FAIL_DOWNLOAD);
+//                 return result;
+//             }
+             String imageMd5 = ImageMd5Util.getMD5(imageUrl);
              if (flag==1){
                  //保存到数据库
-                 return baseService.saveImage(imageUrl,imagePath);
+                 return baseService.saveImage(imageUrl,imagePath,imageMd5,tel);
              }
-             return new SingleResult(imageUrl);
+             Map map = new HashMap();
+             map.put("imageUrl",imageUrl);
+             map.put("imageMd5",imageMd5);
+             return new SingleResult(map);
     }
 
     @PostMapping(value = "/upload/image/batch")
@@ -90,7 +117,7 @@ public class BaseController {
                 String imagePath = IMAGE_DIR + temp;
                 if (flag == 1) {
                     //保存到数据库
-                    baseService.saveImage(imageUrl, imagePath);
+//                    baseService.saveImage(imageUrl, imagePath);
                 }
             }
         }
@@ -115,11 +142,13 @@ public class BaseController {
     @PostMapping(value = "/order/save",produces="application/json")
     @ApiOperation(value = "保存订单",httpMethod = "POST")
     public SingleResult addOrder(@ApiParam(name="order",value = "订单实体类",required = true)
-                                @RequestBody(required = true)OrderDetail order,
-                                @ApiParam(name="imageUrl",value = "公章路径",required = true)
-                                @RequestParam(value = "imageUrl",required = true)String imageUrl
+                                @RequestParam(value = "order",required = true)String order,
+//                                @ApiParam(name="imageUrl",value = "公章路径",required = true)
+//                                @RequestParam(value = "imageUrl",required = true)String imageUrl,
+                                 @ApiParam(name="clientMd5",value = "客户端公章md5",required = true)
+                                     @RequestParam(value = "clientMd5",required = true)String clientMd5
     ){
-        return baseService.saveOrder(order,imageUrl);
+        return baseService.saveOrder(order,clientMd5);
     }
 
     @GetMapping(value = "/user/list",produces="application/json")
@@ -133,9 +162,11 @@ public class BaseController {
                                @ApiParam(name="size",value = "分页大小",required = true)
                                    @RequestParam(value = "size",required = true)Integer size,
                                @ApiParam(name="tel",value = "根据号码搜索",required = false)
-                                @RequestParam(value = "tel",required = false)String tel
+                                @RequestParam(value = "tel",required = false)String tel,
+                                   @ApiParam(name="userId",value = "按用户ID进行筛选",required = false)
+                                       @RequestParam(value = "userId",required = false)Long userId
     ){
-        return baseService.getUserList(tel,flag,userStatus,start,size);
+        return baseService.getUserList(tel,flag,userStatus,start,size,userId);
     }
 
     @GetMapping(value = "/image/list",produces="application/json")
@@ -149,9 +180,11 @@ public class BaseController {
                                    @ApiParam(name="size",value = "分页大小",required = true)
                                    @RequestParam(value = "size",required = true)Integer size,
                                    @ApiParam(name="imageMd5",value = "根据图片唯一标示搜索",required = false)
-                                   @RequestParam(value = "imageMd5",required = false)String imageMd5
+                                   @RequestParam(value = "imageMd5",required = false)String imageMd5,
+                                    @ApiParam(name="tel",value = "根据电话号码搜索",required = false)
+                                        @RequestParam(value = "tel",required = false)String tel
     ){
-        return baseService.getImageList(imageMd5,flag,start,size);
+        return baseService.getImageList(imageMd5,flag,start,size,tel);
     }
 
     @GetMapping(value = "/order/list",produces="application/json")
@@ -173,9 +206,16 @@ public class BaseController {
                                     @ApiParam(name="tel",value = "根据电话号码搜索",required = false)
                                         @RequestParam(value = "tel",required = false)String tel,
                                     @ApiParam(name="orderNo",value = "根据订单号搜索",required = false)
-                                        @RequestParam(value = "orderNo",required = false)String orderNo
+                                        @RequestParam(value = "orderNo",required = false)String orderNo,
+                                    @ApiParam(name="time1",value = "根据时间搜索的起始时间",required = false)
+                                        @RequestParam(value = "time1",required = false)String time1,
+                                    @ApiParam(name="time2",value = "根据时间搜索的终止时间",required = false)
+                                        @RequestParam(value = "time2",required = false)String time2,
+                                    @ApiParam(name="isExport",value = "是否导出excel，默认是0，不导出，1是导出",required = false)
+                                        @RequestParam(value = "isExport",required = false)Integer isExport,
+                                    HttpServletResponse response
     ){
-        return baseService.getOrderList(tel,cardNum,imageMd5,flag,userId,orderNo,orderStatus,start,size);
+        return baseService.getOrderList(tel,cardNum,imageMd5,flag,userId,orderNo,orderStatus,start,size,time1,time2,isExport,response);
     }
 
     @GetMapping(value = "/sys/list",produces="application/json")
@@ -204,7 +244,7 @@ public class BaseController {
     @PostMapping(value = "/sys/add",produces="application/json")
     @ApiOperation(value = "经理添加管理员",httpMethod = "POST")
     public SingleResult addSysUser(@ApiParam(name="sysMember",value = "管理员实体类",required = true)
-                                 @RequestBody(required = true)SysMember sysMember,
+                                 @RequestParam(value = "sysMember",required = true)String sysMember,
                                  @ApiParam(name="operatorId",value = "操作员ID",required = true)
                                  @RequestParam(value = "operatorId",required = true)Long operatorId
     ){

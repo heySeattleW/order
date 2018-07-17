@@ -13,14 +13,17 @@ import com.hey.enums.CodeStatus;
 import com.hey.result.MultiResult;
 import com.hey.result.ResultPageInfo;
 import com.hey.result.SingleResult;
-import com.hey.util.ImageMd5Util;
-import com.hey.util.RandomNumberGenerator;
-import com.hey.util.UUIDUtil;
+import com.hey.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.util.*;
 
+import static com.hey.enums.CodeStatus.FAIL_DOWNLOAD;
+import static com.hey.enums.CodeStatus.MISS_IMAGE;
 import static com.hey.enums.CodeStatus.TEL_EXIST;
 
 /**
@@ -32,27 +35,48 @@ public class BaseService {
     @Autowired
     private BaseDao baseDao;
 
+    public static final String SAVE_PATH = "";
+
     //保存图片信息到数据库
-    public SingleResult saveImage(String imageUrl, String imagePath){
-        String imageMd5 = ImageMd5Util.getMD5(imageUrl);
-        baseDao.saveImage(imageUrl,imagePath,imageMd5);
-        return new SingleResult(imageMd5);
+    public SingleResult saveImage(String imageUrl, String imagePath,String imageMd5,String tel){
+        baseDao.saveImage(tel,imageMd5,imageUrl,imagePath);
+        Map map = new HashMap();
+        map.put("imageMd5",imageMd5);
+        map.put("imageUrl",imageUrl);
+        return new SingleResult(map);
     }
 
     /**
      * 保存用户
-     * @param user
+     * @param userString
      * @return
      */
-    public SingleResult saveUser(User user,String imageUrl){
+    @Transactional
+    public SingleResult saveUser(String userString,String imageUrl,String clientMd5){
+        User user = JSON.parseObject(userString,new TypeReference<User>(){});
         SingleResult result = new SingleResult();
-        if(imageIsUnique(imageUrl)){
+        String fileName = System.currentTimeMillis()+".png";
+//        try {
+//            ImageMd5Util.downLoadFromUrl(imageUrl,fileName,SAVE_PATH);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            result.setMsg(FAIL_DOWNLOAD);
+//            return result;
+//        }
+        String imageMd5 = ImageMd5Util.getMD5(imageUrl);
+        if(imageIsUnique(imageMd5,clientMd5)){
             //图片是唯一的
             //判断电话号码是否存在
-            if(baseDao.telIsExist(user.getTel())){
+            boolean flag = baseDao.telIsExist(user.getTel());
+            if(!flag){
                 Long userId = Long.valueOf(RandomNumberGenerator.generateNumber2());
                 user.setUserId(userId);
+                user.setImageMd5(imageMd5);
+                user.setImageUrl(imageUrl);
+                //密码MD5加密
+                user.setPassword(Md5Util.MD5(user.getPassword()));
                 baseDao.saveUser(user);
+                baseDao.saveUserUpdateImage(userId,user.getTel(),imageMd5);
                 result.setData(userId);
             }else {
                 result.setMsg(TEL_EXIST);
@@ -71,6 +95,7 @@ public class BaseService {
      * @return
      */
     public SingleResult userLogin(String tel,String password){
+        password = Md5Util.MD5(password);
         User info = baseDao.userLogin(tel, password);
         SingleResult result = new SingleResult();
         if(info!=null){
@@ -83,9 +108,8 @@ public class BaseService {
         return result;
     }
 
-    public boolean imageIsUnique(String imageUrl){
-        String imageMd5 = ImageMd5Util.getMD5(imageUrl);
-        if(baseDao.imageIsUnique(imageMd5)){
+    public boolean imageIsUnique(String imageMd5,String clientMd5){
+        if (imageMd5.equals(clientMd5)){
             return true;
         }
         return false;
@@ -94,30 +118,66 @@ public class BaseService {
 
     /**
      * 保存订单
-     * @param order
-     * @param imageUrl
+     * @param orderString
+     * @param clientMd5
      * @return
      */
-    public SingleResult saveOrder(OrderDetail order,String imageUrl){
-        if(imageIsUnique(imageUrl)){
+    public SingleResult saveOrder(String orderString,String clientMd5){
+        OrderDetail order = JSON.parseObject(orderString,new TypeReference<OrderDetail>(){});
+        String fileName = System.currentTimeMillis()+".png";
+        SingleResult result = new SingleResult();
+//        try {
+//            ImageMd5Util.downLoadFromUrl(imageUrl,fileName,SAVE_PATH);
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            result.setMsg(FAIL_DOWNLOAD);
+//            return result;
+//        }
+        User u = baseDao.getMd5ByTel(order.getTel());
+        if(imageIsUnique(u.getImageMd5(),clientMd5)){
             //图片是唯一的，保存订单
             String orderNo = UUIDUtil.getTimeStamp();
             order.setOrderNo(orderNo);
+            if(order.getOrderTimeYear()==null){
+                Calendar cal = Calendar.getInstance();
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH )+1;
+                int day = cal.get(Calendar.DATE);
+                order.setOrderTimeYear(year+"");
+                order.setOrderTimeMonth(month+"");
+                order.setOrderTimeDay(day+"");
+            }
             baseDao.saveOrder(order);
-            return new SingleResult(orderNo);
+            result.setData(orderNo);
+            return result;
         }else {
             //图片不是唯一的，驳回注册请求
-            return new SingleResult("公章识别失败，请重新上传");
+            result.setMsg(MISS_IMAGE);
+            return result;
         }
     }
 
     /**
      * 更新用户信息
-     * @param user
+     * @param userString
      */
-    public SingleResult updateUser(User user){
-        baseDao.updateUser(user);
-        return new SingleResult();
+    public SingleResult updateUser(String userString,String imageUrl){
+        String fileName = System.currentTimeMillis()+".png";
+        String imageMd5 = ImageMd5Util.getMD5(imageUrl);
+        SingleResult result = new SingleResult();
+        User user = JSON.parseObject(userString, new TypeReference<User>() {});
+        if (imageIsUnique(imageMd5,user.getTel())) {
+            //密码MD5加密
+            user.setPassword(Md5Util.MD5(user.getPassword()));
+            user.setImageMd5(imageMd5);
+            //判断公章
+            baseDao.updateUser(user);
+            return result;
+        }else {
+            //图片不是唯一的，驳回注册请求
+            result.setMsg(MISS_IMAGE);
+            return result;
+        }
     }
 
     /**
@@ -126,9 +186,9 @@ public class BaseService {
      * @param flag
      * @return
      */
-    public MultiResult getUserList(String tel,int flag,int userStatus,int start,int size){
+    public MultiResult getUserList(String tel,Integer flag,Integer userStatus,int start,int size,Long userId){
         PageHelper.startPage(start,size);
-        Page<User> userPage = baseDao.getUserList(flag, userStatus, tel);
+        Page<User> userPage = baseDao.getUserList(flag, userStatus, tel,userId);
         ResultPageInfo pageInfo = new ResultPageInfo(userPage.getPages(),userPage.getPageNum(),userPage.getTotal(),userPage.getPageSize());
         String userList = JSON.toJSONString(userPage.getResult());
         List<User> users = JSON.parseObject(userList,new TypeReference<List<User>>(){});
@@ -141,12 +201,17 @@ public class BaseService {
      * @param flag
      * @return
      */
-    public MultiResult getOrderList(String tel,String cardNum,String imageMd5,int flag,Long userId,String orderNo,Integer orderStatus,int start,int size){
+    public MultiResult getOrderList(String tel, String cardNum, String imageMd5, Integer flag, Long userId, String orderNo, Integer orderStatus, int start, int size, String time1, String time2, Integer isExport, HttpServletResponse response){
         PageHelper.startPage(start,size);
-        Page<OrderDetail> orderPage = baseDao.getOrderList(tel,cardNum,imageMd5,userId,orderStatus,flag,orderNo);
+        Page<OrderDetail> orderPage = baseDao.getOrderList(tel,cardNum,imageMd5,userId,orderStatus,flag,orderNo,time1,time2);
         ResultPageInfo pageInfo = new ResultPageInfo(orderPage.getPages(),orderPage.getPageNum(),orderPage.getTotal(),orderPage.getPageSize());
         String orderList = JSON.toJSONString(orderPage.getResult());
         List<OrderDetail> users = JSON.parseObject(orderList,new TypeReference<List<OrderDetail>>(){});
+        if(isExport!=null){
+            if (isExport==1) {
+                ExcelUtil.exportExcel(users, "订单记录表", "orderDetail", OrderDetail.class, "订单.xls", response);
+            }
+        }
         return new MultiResult(users,pageInfo);
     }
 
@@ -156,9 +221,9 @@ public class BaseService {
      * @param flag
      * @return
      */
-    public MultiResult getImageList(String imageMd5,int flag,int start,int size){
+    public MultiResult getImageList(String imageMd5,Integer flag,int start,int size,String tel){
         PageHelper.startPage(start,size);
-        Page<Image> imagePage = baseDao.getImageList(imageMd5,flag);
+        Page<Image> imagePage = baseDao.getImageList(imageMd5,tel,flag);
         ResultPageInfo pageInfo = new ResultPageInfo(imagePage.getPages(),imagePage.getPageNum(),imagePage.getTotal(),imagePage.getPageSize());
         String imageList = JSON.toJSONString(imagePage.getResult());
         List<Image> images = JSON.parseObject(imageList,new TypeReference<List<Image>>(){});
@@ -172,6 +237,7 @@ public class BaseService {
      * @return
      */
     public SingleResult sysLogin(String sysName,String sysPass){
+        sysPass = Md5Util.MD5(sysPass);
         SysMember sysMember = baseDao.sysLogin(sysName, sysPass);
         SingleResult result = new SingleResult();
         if(sysMember!=null){
@@ -185,11 +251,12 @@ public class BaseService {
 
     /**
      * 经理添加管理员
-     * @param sysMember
+     * @param sysMemberString
      * @param operatorId
      * @return
      */
-    public SingleResult addSysUser(SysMember sysMember,Long operatorId){
+    public SingleResult addSysUser(String sysMemberString,Long operatorId){
+        SysMember sysMember = JSON.parseObject(sysMemberString,new TypeReference<SysMember>(){});
         SingleResult result = new SingleResult();
         if(baseDao.sysUserIsManager(operatorId)){
             //是经理
@@ -198,6 +265,7 @@ public class BaseService {
                 //管理员名存在
                 result.setMsg(CodeStatus.NAME_ALREADY_EXIST);
             }else {
+                sysMember.setSysPass(Md5Util.MD5(sysMember.getSysPass()));
                 baseDao.addSysUser(sysMember);
             }
         }else {
@@ -231,10 +299,11 @@ public class BaseService {
      * @param size
      * @return
      */
-    public MultiResult getSysUser(Long operatorId,int start,int size){
+    public MultiResult getSysUser(Long operatorId,Integer start,Integer size){
         MultiResult result = new MultiResult();
         if(baseDao.sysUserIsManager(operatorId)){
             PageHelper.startPage(start,size);
+//            PageHelper.offsetPage(start,size);
             Page<SysMember> members = baseDao.getSysUserList();
             ResultPageInfo pageInfo = new ResultPageInfo(members.getPages(),members.getPageNum(),members.getTotal(),members.getPageSize());
             String memberList = JSON.toJSONString(members.getResult());

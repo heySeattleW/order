@@ -13,6 +13,26 @@ public class Image extends BaseEntity {
 
     private String imageMd5;
 
+    private Long userId;
+
+    private String tel;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
     public String getImageUrl() {
         return imageUrl;
     }

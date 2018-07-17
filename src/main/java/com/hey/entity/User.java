@@ -1,7 +1,5 @@
 package com.hey.entity;
 
-import java.sql.Timestamp;
-
 /**
  * Created by heer on 2018/6/20.
  */
@@ -11,11 +9,31 @@ public class User extends BaseEntity{
 
     private String tel;
 
-    private String desc;
+    private String userDesc;
 
     private String password;
 
     private Integer userStatus;
+
+    private String imageUrl;
+
+    private String imageMd5;
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageMd5() {
+        return imageMd5;
+    }
+
+    public void setImageMd5(String imageMd5) {
+        this.imageMd5 = imageMd5;
+    }
 
     public Long getUserId() {
         return userId;
@@ -31,14 +49,6 @@ public class User extends BaseEntity{
 
     public void setTel(String tel) {
         this.tel = tel;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
     }
 
     public String getPassword() {
@@ -57,36 +67,34 @@ public class User extends BaseEntity{
         this.userStatus = userStatus;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("{");
-        sb.append("\"userId\":")
-                .append(userId);
-        sb.append(",\"tel\":\"")
-                .append(tel).append('\"');
-        sb.append(",\"desc\":\"")
-                .append(desc).append('\"');
-        sb.append(",\"id\":")
-                .append(id);
-        sb.append(",\"password\":\"")
-                .append(password).append('\"');
-        sb.append(",\"update_time\":\"")
-                .append(update_time).append('\"');
-        sb.append(",\"userStatus\":")
-                .append(userStatus);
-        sb.append('}');
-        return sb.toString();
+
+
+    public User() {
     }
 
-    public User(Long id, String update_time, Long userId, String tel, String desc, String password, Integer userStatus) {
-        super(id, update_time);
+    public User(Long userId, String tel, String userDesc, String password, Integer userStatus) {
         this.userId = userId;
         this.tel = tel;
-        this.desc = desc;
+        this.userDesc = userDesc;
         this.password = password;
         this.userStatus = userStatus;
     }
 
-    public User() {
+    public User(Long userId, String tel, String userDesc, String password, Integer userStatus, String imageUrl, String imageMd5) {
+        this.userId = userId;
+        this.tel = tel;
+        this.userDesc = userDesc;
+        this.password = password;
+        this.userStatus = userStatus;
+        this.imageUrl = imageUrl;
+        this.imageMd5 = imageMd5;
+    }
+
+    public String getUserDesc() {
+        return userDesc;
+    }
+
+    public void setUserDesc(String userDesc) {
+        this.userDesc = userDesc;
     }
 }

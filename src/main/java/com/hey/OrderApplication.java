@@ -1,17 +1,19 @@
 package com.hey;
 
 import com.github.pagehelper.PageHelper;
-import javafx.application.Application;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Properties;
 
 @SpringBootApplication
-public class OrderApplication extends SpringBootServletInitializer {
+public class OrderApplication {
 
 	//配置mybatis的分页插件pageHelper
 	@Bean
@@ -32,8 +34,28 @@ public class OrderApplication extends SpringBootServletInitializer {
 		SpringApplication.run(OrderApplication.class, args);
 	}
 
-	@Override
-	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-		return builder.sources(Application.class);
+//	@Override
+//	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+//		return builder.sources(OrderApplication.class);
+//	}
+
+	private CorsConfiguration buildConfig() {
+		CorsConfiguration corsConfiguration = new CorsConfiguration();
+		corsConfiguration.addAllowedOrigin("*");
+		corsConfiguration.addAllowedHeader("*");
+		corsConfiguration.addAllowedMethod("*");
+		return corsConfiguration;
 	}
+
+	/**
+	 * 跨域过滤器
+	 * @return
+	 */
+	@Bean
+	public CorsFilter corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", buildConfig()); // 4
+		return new CorsFilter(source);
+	}
+
 }

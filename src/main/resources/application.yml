@@ -4,10 +4,15 @@ spring:
   application:
     name: order
   datasource:
-    url: jdbc:mysql://123.206.181.71:3306/order?charset=utf8
+    url: jdbc:mysql://47.96.237.198:3306/order?charset=utf8&useSSL=false
     username: root
-    password: l1141180
+    password: root
     driver-class-name: com.mysql.jdbc.Driver
+  http:
+    multipart:
+      enabled: true
+      max-file-size: 100mb
+      max-request-size: 100mb
 mybatis:
   configuration:
     map-underscore-to-camel-case: true

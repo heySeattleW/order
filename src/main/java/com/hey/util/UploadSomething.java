@@ -12,18 +12,11 @@ public class UploadSomething {
     //上传单张图片
     public static String uploadImg(String path,MultipartFile img, String dir){
         File dirs = new File(path);
-        String name ;
+        String name = "";
         System.out.print(img.getContentType()+"格式啊啊啊");
         if(!dirs.exists()){
             dirs.mkdirs();
-        }
-            if (img.getSize() > 102400 * 102400) {
-                name = "文件太大了";
-            } else if (!img.getContentType().equals("image/jpeg") && !img.getContentType().equals("image/bmp")&& !img.getContentType().equals("image/jpg")
-                    && !img.getContentType().equals("image/png") && !img.getContentType().equals("image/gif")) {
-                name = "文件格式不对";
-            }
-            else {
+        }else {
                 String imgName = img.getOriginalFilename();
                 String imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
                 String suffix = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf("."));
@@ -55,28 +48,18 @@ public class UploadSomething {
         }
         int i=0;
         for (MultipartFile img : imgs) {
-
-            if (img.getSize() > 102400 * 102400) {
-                name[i]="文件太大了";
-                i++;
-            } else if (!img.getContentType().equals("image/jpeg") && !img.getContentType().equals("image/bmp")&& !img.getContentType().equals("image/jpg")
-                    && !img.getContentType().equals("image/png") && !img.getContentType().equals("image/gif")) {
-                name[i]="文件格式不对";
-                i++;
-            }else {
-                String imgName = img.getOriginalFilename();
-                String imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
-                String suffix = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf("."));
-                File file = new File(path + "/" + imgMD5 + suffix);
-                file.exists();
-                try {
-                    img.transferTo(file);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                name[i] = dir + "/"+ imgMD5 + suffix+",";
-                i++;
+            String imgName = img.getOriginalFilename();
+            String imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
+            String suffix = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf("."));
+            File file = new File(path + "/" + imgMD5 + suffix);
+            file.exists();
+            try {
+                img.transferTo(file);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            name[i] = dir + "/"+ imgMD5 + suffix+",";
+            i++;
         }
         return name;//返回图片存放的相对路径
     }
@@ -87,11 +70,6 @@ public class UploadSomething {
         String name="";
         if(!dirs.exists()){
             dirs.mkdirs();
-        }
-        if (video.getSize() > 102400 * 102400) {
-            name="文件太大了";
-        } else if (!video.getContentType().equals("video/mp4")) {
-            name="文件格式不对";
         }else {
             String imgName = video.getOriginalFilename();
             String imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
@@ -118,15 +96,7 @@ public class UploadSomething {
         System.out.print("音乐格式"+xx);
         if(!dirs.exists()){
             dirs.mkdirs();
-        }
-        if (img.getSize() > 102400 * 102400) {
-            name = "文件太大了";
-        }
-//         else if (xx.equals("audio/mpeg")||xx.equals("audio/aac")||xx.equals("audio/mp3")) {
-//            name = "文件格式需要转换";
-//        }
-
-        else {
+        }else {
             String imgName = img.getOriginalFilename();
             imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
             String suffix = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf("."));
@@ -151,14 +121,7 @@ public class UploadSomething {
         String name = "";
         if(!dirs.exists()){
             dirs.mkdirs();
-        }
-        if (img.getSize() > 102400 * 102400) {
-            name = "文件太大了";
-        } else if (!img.getContentType().equals("image/jpeg") && !img.getContentType().equals("image/bmp")
-                && !img.getContentType().equals("image/png") && !img.getContentType().equals("image/gif")) {
-            name = "文件格式不对";
-        }
-        else {
+        }else {
             String imgName = img.getOriginalFilename();
             String imgMD5 = Md5Util.MD5(imgName + UUIDUtil.uuid());
             String suffix = img.getOriginalFilename().substring(img.getOriginalFilename().lastIndexOf("."));
