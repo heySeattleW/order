@@ -62,10 +62,10 @@ public class BaseController {
     @ApiOperation(value = "修改用户信息",httpMethod = "POST")
     public SingleResult updateUserInfo(@ApiParam(name="user",value = "用户实体类",required = true)
                               @RequestParam(value = "user",required = true)String user,
-                                       @ApiParam(name="imageUrl",value = "公章地址",required = true)
-                                       @RequestParam(value = "imageUrl",required = true)String imageUrl
+                                       @ApiParam(name="clientMd5",value = "客户端md5",required = false)
+                                       @RequestParam(value = "clientMd5",required = false)String clientMd5
     ){
-        return baseService.updateUser(user,imageUrl);
+        return baseService.updateUser(user,clientMd5);
     }
 
     @PostMapping(value = "/upload/image")
@@ -251,6 +251,16 @@ public class BaseController {
         return baseService.addSysUser(sysMember,operatorId);
     }
 
+    @PostMapping(value = "/sys/update/order",produces="application/json")
+    @ApiOperation(value = "经理更新订单",httpMethod = "POST")
+    public SingleResult addUpdateOrder(@ApiParam(name="order",value = "订单实体类",required = true)
+                                   @RequestParam(value = "order",required = true)String order,
+                                   @ApiParam(name="operatorId",value = "操作员ID",required = true)
+                                   @RequestParam(value = "operatorId",required = true)Long operatorId
+    ){
+        return baseService.updateOrder(order,operatorId);
+    }
+
     @DeleteMapping(value = "/sys/delete",produces="application/json")
     @ApiOperation(value = "经理删除管理员",httpMethod = "DELETE")
     public SingleResult deleteSysUser(@ApiParam(name="sysId",value = "被删除管理员ID",required = true)
@@ -259,5 +269,35 @@ public class BaseController {
                                    @RequestParam(value = "operatorId",required = true)Long operatorId
     ){
         return baseService.deleteSysUser(sysId,operatorId);
+    }
+
+    @DeleteMapping(value = "/sys/delete/order",produces="application/json")
+    @ApiOperation(value = "经理删除订单",httpMethod = "DELETE")
+    public SingleResult deleteOrder(@ApiParam(name="orderId",value = "被删除订单ID",required = true)
+                                      @RequestParam(value = "orderId",required = true)Long orderId,
+                                      @ApiParam(name="operatorId",value = "操作员ID",required = true)
+                                      @RequestParam(value = "operatorId",required = true)Long operatorId
+    ){
+        return baseService.deleteOrder(orderId,operatorId);
+    }
+
+    @DeleteMapping(value = "/sys/delete/user",produces="application/json")
+    @ApiOperation(value = "经理删除用户",httpMethod = "DELETE")
+    public SingleResult deleteUser(@ApiParam(name="userId",value = "被删除用户ID",required = true)
+                                    @RequestParam(value = "userId",required = true)Long userId,
+                                    @ApiParam(name="operatorId",value = "操作员ID",required = true)
+                                    @RequestParam(value = "operatorId",required = true)Long operatorId
+    ){
+        return baseService.deleteUser(userId,operatorId);
+    }
+
+    @DeleteMapping(value = "/sys/delete/image",produces="application/json")
+    @ApiOperation(value = "经理删除公章",httpMethod = "DELETE")
+    public SingleResult deleteImage(@ApiParam(name="imageId",value = "被删除公章ID",required = true)
+                                      @RequestParam(value = "imageId",required = true)Long imageId,
+                                      @ApiParam(name="operatorId",value = "操作员ID",required = true)
+                                      @RequestParam(value = "operatorId",required = true)Long operatorId
+    ){
+        return baseService.deleteImage(imageId,operatorId);
     }
 }

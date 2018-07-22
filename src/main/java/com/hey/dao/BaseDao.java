@@ -67,7 +67,7 @@ public interface BaseDao {
      * @param password
      * @return
      */
-    @Select("select * from user where tel=#{tel} and password=#{password} and user_status!=1 limit 1")
+    @Select("select * from user where tel=#{tel} and password=#{password} and user_status=2 limit 1")
     User userLogin(@Param("tel") String tel,@Param("password") String password);
 
     /**
@@ -100,9 +100,16 @@ public interface BaseDao {
             "            </if>\n" +
             "            update_time=now()\n" +
             "        </set>\n" +
-            "        where image_md5=#{imageMd5}" +
+            "        where user_id=#{userId}" +
             "</script>")
     void updateUser(User user);
+
+    /**
+     * 删除公章
+     * @param id
+     */
+    @Delete("delete from image where id=#{id}")
+    void deleteImage(Long id);
 
     /**
      * 条件查询公章列表
@@ -200,6 +207,27 @@ public interface BaseDao {
             "        </if></script>")
     Page<OrderDetail> getOrderList(@Param("tel")String tel, @Param("cardNum")String cardNum, @Param("imageMd5")String imageMd5, @Param("userId")Long userId, @Param("orderStatus")Integer orderStatus, @Param("flag") Integer flag, @Param("orderNo")String orderNo,@Param("time1")String time1,@Param("time2")String time2);
 
+
+    /**
+     * 删除订单
+     * @param id
+     */
+    @Delete("delete from order_detail where id=#{id}")
+    void deleteOrder(Long id);
+
+    /**
+     * 删除用户
+     * @param userId
+     */
+    @Delete("delete from user where user_id=#{userId}")
+    void deleteUser(Long userId);
+
+    /**
+     * 更新订单
+     * @param order
+     */
+    @Update("update order_detail set order_status=#{orderStatus} where id=#{id}")
+    void updateOrder(OrderDetail order);
 
 
 

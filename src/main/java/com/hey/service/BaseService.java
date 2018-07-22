@@ -161,21 +161,26 @@ public class BaseService {
      * 更新用户信息
      * @param userString
      */
-    public SingleResult updateUser(String userString,String imageUrl){
+    public SingleResult updateUser(String userString,String clientMd5){
         String fileName = System.currentTimeMillis()+".png";
-        String imageMd5 = ImageMd5Util.getMD5(imageUrl);
+
         SingleResult result = new SingleResult();
         User user = JSON.parseObject(userString, new TypeReference<User>() {});
-        if (imageIsUnique(imageMd5,user.getTel())) {
-            //密码MD5加密
-            user.setPassword(Md5Util.MD5(user.getPassword()));
-            user.setImageMd5(imageMd5);
-            //判断公章
-            baseDao.updateUser(user);
-            return result;
+        User u = baseDao.getMd5ByTel(user.getTel());
+        if(clientMd5!=null) {
+            if (imageIsUnique(u.getImageMd5(), clientMd5)) {
+                //密码MD5加密
+                user.setPassword(Md5Util.MD5(user.getPassword()));
+                //判断公章
+                baseDao.updateUser(user);
+                return result;
+            } else {
+                //图片不是唯一的，驳回注册请求
+                result.setMsg(MISS_IMAGE);
+                return result;
+            }
         }else {
-            //图片不是唯一的，驳回注册请求
-            result.setMsg(MISS_IMAGE);
+            baseDao.updateUser(user);
             return result;
         }
     }
@@ -276,6 +281,25 @@ public class BaseService {
     }
 
     /**
+     * 经理更新订单
+     * @param orderString
+     * @param operatorId
+     * @return
+     */
+    public SingleResult updateOrder(String orderString,Long operatorId){
+        OrderDetail order = JSON.parseObject(orderString,new TypeReference<OrderDetail>(){});
+        SingleResult result = new SingleResult();
+        if(baseDao.sysUserIsManager(operatorId)){
+            //是经理
+            baseDao.updateOrder(order);
+        }else {
+            //不是经理
+            result.setMsg(CodeStatus.NO_PERMISSION);
+        }
+        return result;
+    }
+
+    /**
      * 经理删除管理员
      * @param sysId
      * @param operatorId
@@ -285,6 +309,57 @@ public class BaseService {
         SingleResult result = new SingleResult();
         if(baseDao.sysUserIsManager(operatorId)){
             baseDao.deleteSysUser(sysId);
+        }else {
+            //不是经理
+            result.setMsg(CodeStatus.NO_PERMISSION);
+        }
+        return result;
+    }
+
+    /**
+     * 经理删除用户
+     * @param userId
+     * @param operatorId
+     * @return
+     */
+    public SingleResult deleteUser(Long userId,Long operatorId){
+        SingleResult result = new SingleResult();
+        if(baseDao.sysUserIsManager(operatorId)){
+            baseDao.deleteUser(userId);
+        }else {
+            //不是经理
+            result.setMsg(CodeStatus.NO_PERMISSION);
+        }
+        return result;
+    }
+
+    /**
+     * 经理删除公章
+     * @param imageId
+     * @param operatorId
+     * @return
+     */
+    public SingleResult deleteImage(Long imageId,Long operatorId){
+        SingleResult result = new SingleResult();
+        if(baseDao.sysUserIsManager(operatorId)){
+            baseDao.deleteImage(imageId);
+        }else {
+            //不是经理
+            result.setMsg(CodeStatus.NO_PERMISSION);
+        }
+        return result;
+    }
+
+    /**
+     * 经理删除订单
+     * @param orderId
+     * @param operatorId
+     * @return
+     */
+    public SingleResult deleteOrder(Long orderId,Long operatorId){
+        SingleResult result = new SingleResult();
+        if(baseDao.sysUserIsManager(operatorId)){
+            baseDao.deleteOrder(orderId);
         }else {
             //不是经理
             result.setMsg(CodeStatus.NO_PERMISSION);
@@ -331,4 +406,6 @@ public class BaseService {
         String userList = JSON.toJSONString(userPage.getResult());
         return new MultiResult(userList,pageInfo);
     }
+
+
 }
