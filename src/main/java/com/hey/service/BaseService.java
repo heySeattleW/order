@@ -133,7 +133,7 @@ public class BaseService {
 //            result.setMsg(FAIL_DOWNLOAD);
 //            return result;
 //        }
-        User u = baseDao.getMd5ByTel(order.getTel());
+        User u = baseDao.getMd5ByUserId(order.getUserId());
         if(imageIsUnique(u.getImageMd5(),clientMd5)){
             //图片是唯一的，保存订单
             String orderNo = UUIDUtil.getTimeStamp();

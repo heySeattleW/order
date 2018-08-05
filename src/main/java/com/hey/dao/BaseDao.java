@@ -100,7 +100,7 @@ public interface BaseDao {
             "            </if>\n" +
             "            update_time=now()\n" +
             "        </set>\n" +
-            "        where user_id=#{userId}" +
+            "        where tel=#{tel}" +
             "</script>")
     void updateUser(User user);
 
@@ -266,5 +266,9 @@ public interface BaseDao {
     //通过电话获取md5
     @Select("select * from user where tel=#{tel}")
     User getMd5ByTel(String tel);
+
+    //通过userId获取md5
+    @Select("select * from user where user_id=#{userId}")
+    User getMd5ByUserId(Long userId);
 
 }
