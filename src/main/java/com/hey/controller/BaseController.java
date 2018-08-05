@@ -303,4 +303,10 @@ public class BaseController {
     public SingleResult test1(String hello) {
         return new SingleResult(hello);
     }
+
+    @GetMapping(value = "/haha2", produces = "application/json")
+    @ApiOperation(value = "测试用", httpMethod = "GET")
+    public SingleResult test2(String hello) {
+        return new SingleResult(hello);
+    }
 }
